@@ -1,0 +1,22 @@
+[project]
+name = "pdf-embed-chroma"
+version = "0.1.0"
+description = "Embed PDF chunks into a persistent ChromaDB collection"
+readme = "README.md"
+authors = [
+    { email = "chandan.kumar.eee15@itbhu.ac.in" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "chromadb>=0.5.0",
+    "onnxruntime<1.24",
+    "pypdf>=4.0.0",
+    "sentence-transformers>=3.0.0",
+]
+
+[project.scripts]
+pdf-embed-chroma = "pdf_embed_chroma.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.9.18,<0.10.0"]
+build-backend = "uv_build"
