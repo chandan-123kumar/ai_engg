@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PDF Embeddings with ChromaDB</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="lesson-panel" aria-labelledby="lesson-title">
+        <div class="lesson-copy">
+          <p class="eyebrow">RAG pipeline</p>
+          <h1 id="lesson-title">How a PDF becomes searchable knowledge</h1>
+          <p>
+            Watch the flow from document text to chunks, embeddings, ChromaDB,
+            and finally a query that retrieves the most relevant pieces.
+          </p>
+        </div>
+
+        <div class="controls" aria-label="Animation controls">
+          <button class="control-btn" id="playPauseBtn" type="button">Pause</button>
+          <button class="control-btn secondary" id="restartBtn" type="button">Restart</button>
+        </div>
+      </section>
+
+      <section class="pipeline" aria-label="Animated RAG concept diagram">
+        <article class="stage stage-pdf" data-step="0">
+          <div class="stage-header">
+            <span class="step-number">1</span>
+            <h2>PDF text</h2>
+          </div>
+          <div class="pdf-card" aria-hidden="true">
+            <div class="pdf-bar"></div>
+            <div class="pdf-line wide"></div>
+            <div class="pdf-line"></div>
+            <div class="pdf-line short"></div>
+            <div class="pdf-line wide"></div>
+            <div class="pdf-line"></div>
+          </div>
+          <p class="stage-note">Text is extracted page by page.</p>
+        </article>
+
+        <article class="stage stage-chunks" data-step="1">
+          <div class="stage-header">
+            <span class="step-number">2</span>
+            <h2>Chunks</h2>
+          </div>
+          <div class="chunk-stack" aria-hidden="true">
+            <span class="chunk">Page 1 chunk 1</span>
+            <span class="chunk">Page 1 chunk 2</span>
+            <span class="chunk">Page 2 chunk 1</span>
+          </div>
+          <p class="stage-note">Long text is split into overlapping pieces.</p>
+        </article>
+
+        <article class="stage stage-embedding" data-step="2">
+          <div class="stage-header">
+            <span class="step-number">3</span>
+            <h2>Embedding model</h2>
+          </div>
+          <div class="vector-box" aria-hidden="true">
+            <div class="vector-pulse"></div>
+            <code>[0.12, -0.44, 0.81, ...]</code>
+          </div>
+          <p class="stage-note">Each chunk becomes a numeric meaning vector.</p>
+        </article>
+
+        <article class="stage stage-chroma" data-step="3">
+          <div class="stage-header">
+            <span class="step-number">4</span>
+            <h2>ChromaDB</h2>
+          </div>
+          <div class="database" aria-hidden="true">
+            <div class="db-ring"></div>
+            <div class="db-row"></div>
+            <div class="db-row"></div>
+            <div class="db-row"></div>
+          </div>
+          <p class="stage-note">Vectors and metadata are stored for search.</p>
+        </article>
+
+        <article class="stage stage-query" data-step="4">
+          <div class="stage-header">
+            <span class="step-number">5</span>
+            <h2>Query</h2>
+          </div>
+          <div class="query-card" aria-hidden="true">
+            <span>What is this PDF about?</span>
+            <div class="answer-line"></div>
+            <div class="answer-line short"></div>
+          </div>
+          <p class="stage-note">The closest chunks are returned as context.</p>
+        </article>
+
+        <div class="moving-token" id="movingToken" aria-hidden="true"></div>
+      </section>
+
+      <section class="explainer" aria-live="polite">
+        <div>
+          <p class="eyebrow">Current idea</p>
+          <h2 id="stepTitle">PDF text extraction</h2>
+        </div>
+        <p id="stepText">
+          A PDF is not searched directly. First, the program extracts readable
+          text from each page.
+        </p>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

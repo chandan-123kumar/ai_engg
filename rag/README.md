@@ -39,3 +39,8 @@ uv run pdf-embed-chroma query "What is the document about?"
 
 Use the same `--persist-dir`, `--collection`, and `--model` values for querying
 that you used while ingesting.
+
+## Visual Lesson
+
+Open `animation/index.html` in a browser to see a student-friendly animation of
+the PDF-to-ChromaDB retrieval flow.
