@@ -86,7 +86,7 @@ sub_step_executions — id, stage_execution_id, sub_step_id, status, result
 agent_tasks         — id, sub_step_execution_id, agent_type, payload, status
 human_tasks         — id, sub_step_execution_id, gate_type, payload, status
 agent_conversations — id, sub_step_execution_id, turn_number, from_agent, to_agent, message JSONB, status
-agent_registry      — agent_type, name, description, input_schema JSONB, output_schema JSONB, endpoint
+agent_registry      — agent_type, name, description, input_schema JSONB, output_schema JSONB, endpoint, provider (claude_cli|claude_api), provider_config JSONB
 ```
 
 ---
@@ -284,6 +284,9 @@ Sub-Step Executor
 ### Agent Registry (Admin)
 - List registered agent types with name, description, input/output schema
 - Register new agent type with endpoint URL
+- Configure LLM provider per agent: `claude_cli` (default) or `claude_api`
+  - Claude CLI: set CLI path and model flag
+  - Claude API: set API key and model ID
 - Available agent types appear in sub-step editor dropdowns
 
 ---
@@ -312,8 +315,8 @@ Monitor Agent (post-deploy / post-publish)
 
 ---
 
-## 8. Open Questions
+## 8. Decisions
 
-- Which LLM provider backs agent workers by default? (Claude recommended)
-- Self-hosted Kafka or managed (Confluent / MSK)?
-- Authentication: basic auth or OAuth for v1 dashboard?
+- **LLM Provider:** Claude Code CLI by default. Also supports direct Anthropic API. Provider is configurable per-agent from the dashboard — each agent in the registry has a `provider` field (`claude_cli` | `claude_api`) and associated config (API key, model, CLI path). New providers can be added via the agent registry.
+- **Kafka:** Self-hosted (Docker Compose for local dev, bare-metal/VM for production).
+- **Authentication:** Basic username + password. Credentials stored as bcrypt hashes in Postgres. Session via signed JWT stored in httpOnly cookie.
