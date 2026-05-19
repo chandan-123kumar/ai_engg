@@ -1,0 +1,8 @@
+WORKFLOW_TRIGGER = "workflow.trigger"
+AGENT_TASKS = "agent.tasks"
+AGENT_RESULTS = "agent.results"
+AGENT_CONVERSATION = "agent.conversation"
+HUMAN_TASKS = "human.tasks"
+HUMAN_RESULTS = "human.results"
+PIPELINE_STATE = "pipeline.state"
+PIPELINE_FEEDBACK = "pipeline.feedback"
