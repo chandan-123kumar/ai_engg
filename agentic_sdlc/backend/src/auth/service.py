@@ -1,7 +1,12 @@
 from datetime import datetime, timedelta, timezone
 import bcrypt
 import jwt
+from sqlalchemy.orm import Session
 from src.config import settings
+
+def get_user_by_email(db: Session, email: str):
+    from src.models.user import User
+    return db.query(User).filter(User.email == email).first()
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()

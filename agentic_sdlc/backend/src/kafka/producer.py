@@ -15,5 +15,8 @@ def get_producer() -> _KafkaProducer:
     return _producer
 
 def publish(topic: str, message: dict, key: str = None):
-    get_producer().send(topic, value=message, key=key)
+    producer = get_producer()
+    producer.send(topic, value=message, key=key)
+
+def flush():
     get_producer().flush()

@@ -1,8 +1,8 @@
 import uuid
 from sqlalchemy.orm import Session
 from src.models.run import WorkflowRun, StageExecution, RunStatus, ExecutionStatus
-from src.models.workflow import Workflow, Stage, WorkflowStatus
-from src.kafka.producer import publish
+from src.models.workflow import Workflow, Stage, WorkflowStatus, ExecutorType
+from src.kafka.producer import publish, flush
 from src.kafka import topics
 
 def trigger_run(db: Session, workflow_id: str, trigger_payload: dict) -> WorkflowRun:
@@ -55,12 +55,21 @@ def _dispatch_stage(db: Session, run: WorkflowRun, stage: Stage, payload: dict):
         "payload": payload,
     }
 
-    if str(stage.executor_type) in ("agent", "ExecutorType.agent"):
+    if stage.executor_type == ExecutorType.agent:
         publish(topics.AGENT_TASKS, event, key=str(run.id))
     else:
         publish(topics.HUMAN_TASKS, event, key=str(run.id))
 
     publish(topics.PIPELINE_STATE, {**event, "event": "stage_started"}, key=str(run.id))
+    flush()
+
+def serialize_run(run: WorkflowRun) -> dict:
+    return {
+        "id": str(run.id),
+        "workflow_id": str(run.workflow_id),
+        "status": run.status,
+        "trigger_payload": run.trigger_payload,
+    }
 
 def get_run(db: Session, run_id: str) -> WorkflowRun | None:
     return db.query(WorkflowRun).filter(WorkflowRun.id == run_id).first()

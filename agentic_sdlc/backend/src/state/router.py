@@ -4,6 +4,7 @@ from src.database import get_db
 from src.auth.dependencies import get_current_user
 from src.models.user import User
 from src.state import service
+from src.engine.engine import serialize_run
 
 router = APIRouter()
 
@@ -11,11 +12,7 @@ router = APIRouter()
 def list_runs(workflow_id: str, db: Session = Depends(get_db),
               user: User = Depends(get_current_user)):
     runs = service.list_runs(db, workflow_id)
-    return [
-        {"id": str(r.id), "workflow_id": str(r.workflow_id),
-         "status": r.status, "trigger_payload": r.trigger_payload}
-        for r in runs
-    ]
+    return [serialize_run(r) for r in runs]
 
 @router.get("/runs/{run_id}/stages")
 def list_run_stages(run_id: str, db: Session = Depends(get_db),

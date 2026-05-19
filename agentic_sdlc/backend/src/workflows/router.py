@@ -12,16 +12,19 @@ from src.workflows.schemas import (
 
 router = APIRouter()
 
+def _serialize_workflow(wf) -> dict:
+    return {**wf.__dict__, "trigger": wf.config.get("trigger", {})}
+
 @router.post("/workflows", status_code=201, response_model=WorkflowResponse)
 def create_workflow(body: WorkflowCreate, db: Session = Depends(get_db),
                     user: User = Depends(get_current_user)):
     wf = service.create_workflow(db, str(user.id), body.name, body.trigger)
-    return {**wf.__dict__, "trigger": wf.config.get("trigger", {})}
+    return _serialize_workflow(wf)
 
 @router.get("/workflows", response_model=list[WorkflowResponse])
 def list_workflows(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     wfs = service.list_workflows(db, str(user.id))
-    return [{**w.__dict__, "trigger": w.config.get("trigger", {})} for w in wfs]
+    return [_serialize_workflow(w) for w in wfs]
 
 @router.post("/workflows/{workflow_id}/publish", response_model=WorkflowResponse)
 def publish_workflow(workflow_id: str, db: Session = Depends(get_db),
@@ -29,7 +32,7 @@ def publish_workflow(workflow_id: str, db: Session = Depends(get_db),
     wf = service.publish_workflow(db, workflow_id, str(user.id))
     if not wf:
         raise HTTPException(status_code=404, detail="Workflow not found")
-    return {**wf.__dict__, "trigger": wf.config.get("trigger", {})}
+    return _serialize_workflow(wf)
 
 @router.post("/workflows/{workflow_id}/stages", status_code=201, response_model=StageResponse)
 def add_stage(workflow_id: str, body: StageCreate, db: Session = Depends(get_db),

@@ -8,6 +8,7 @@ class BaseConsumer(threading.Thread):
 
     def __init__(self):
         super().__init__(daemon=True)
+        self._stop_event = threading.Event()
         self._consumer = KafkaConsumer(
             self.topic,
             bootstrap_servers=settings.kafka_bootstrap_servers,
@@ -20,6 +21,12 @@ class BaseConsumer(threading.Thread):
     def handle(self, message: dict):
         raise NotImplementedError
 
+    def stop(self):
+        self._stop_event.set()
+        self._consumer.close()
+
     def run(self):
         for msg in self._consumer:
+            if self._stop_event.is_set():
+                break
             self.handle(msg.value)

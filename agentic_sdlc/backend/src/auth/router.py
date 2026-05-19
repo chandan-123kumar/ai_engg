@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from src.database import get_db
 from src.models.user import User
-from src.auth.service import hash_password, verify_password, create_token
+from src.auth.service import get_user_by_email, hash_password, verify_password, create_token
 
 router = APIRouter(prefix="/auth")
 
@@ -19,7 +19,7 @@ class LoginRequest(BaseModel):
 
 @router.post("/register", status_code=201)
 def register(body: RegisterRequest, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == body.email).first():
+    if get_user_by_email(db, body.email):
         raise HTTPException(status_code=409, detail="Email already registered")
     user = User(
         id=uuid.uuid4(),
@@ -34,7 +34,7 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)):
 
 @router.post("/login")
 def login(body: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == body.email).first()
+    user = get_user_by_email(db, body.email)
     if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = create_token(user_id=str(user.id), email=user.email)
