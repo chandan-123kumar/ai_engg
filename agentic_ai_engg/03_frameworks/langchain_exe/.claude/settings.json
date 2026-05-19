@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(env)",
+      "Bash(python -c \"from langchain.agents import create_agent; import inspect; print\\(inspect.signature\\(create_agent\\)\\)\")",
+      "Bash(python -c \"from langchain.chat_models import init_chat_model; import inspect; print\\(inspect.signature\\(init_chat_model\\)\\)\")",
+      "Bash(.venv/bin/python -c \"import langchain_google_genai; print\\('ok'\\)\")",
+      "Bash(uv run *)",
+      "Bash(.venv/bin/python -c ' *)"
+    ]
+  }
+}

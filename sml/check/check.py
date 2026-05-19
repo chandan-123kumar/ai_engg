@@ -1,6 +1,5 @@
 import torch
 import numpy as np
-import tiktoken
 
 print(f"PyTorch version : {torch.__version__}")
 print(f"MPS available   : {torch.backends.mps.is_available()}")

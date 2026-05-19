@@ -57,7 +57,7 @@ User Query → Embed Query → Similarity Search → Retrieved Chunks
 ### Sparse vs Dense vs Hybrid
 - **Dense**: embedding similarity (semantic meaning)
 - **Sparse**: BM25/TF-IDF keyword matching (exact terms)
-- **Hybrid**: combine both with RRF (Reciprocal Rank Fusion)
+- **Hybrid**: combine both with RRF (Reciprocal Rank Fusion) TODO
 - Hybrid consistently outperforms either alone by 5–15%
 
 ```python
@@ -76,7 +76,7 @@ def rrf(dense_ranks, sparse_ranks, k=60):
 - Cross-encoder models (Cohere Rerank, BGE-reranker) much more accurate than bi-encoders
 - Trade-off: 2–5× latency increase
 
-### Query Expansion / HyDE
+### Query Expansion / HyDE //TODO
 - **HyDE** (Hypothetical Document Embedding): ask LLM to write a hypothetical answer, embed that, use as query
 - Works well when user query is short/vague
 
@@ -102,7 +102,7 @@ results = vector_store.search(embedding)
 2. Retrieve for each
 3. Fuse with RRF
 4. Generate answer
-
+------------------------------------
 ### Corrective RAG (CRAG)
 - Evaluate retrieved docs for relevance
 - If poor, trigger web search fallback
@@ -114,7 +114,7 @@ results = vector_store.search(embedding)
 - More efficient for conversational agents
 
 ### Agentic RAG
-- Agent has retrieval as one of many tools
+- Agent has retri\eval as one of many tools
 - Decides search strategy, can do multi-hop retrieval
 - Example: retrieve → identify gap → retrieve again with refined query
 

@@ -72,7 +72,7 @@ Answer: Apple (AAPL) is currently trading at $189.50.
 |---|---|---|
 | Random | Sample k examples | Simple tasks |
 | Similarity-based | Embed + cosine search | Domain-specific tasks |
-| Diversity-based | MMR (max marginal relevance) | Broad coverage |
+| Diversity-based | MMR (max marginal relevance) | Broad coverage | TODO
 | Hard examples | Examples model gets wrong | Error recovery |
 
 ### Self-Consistency
