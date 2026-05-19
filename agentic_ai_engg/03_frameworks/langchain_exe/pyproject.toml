@@ -7,5 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "deepagents>=0.5.7",
     "langchain>=1.2.18",
+    "langchain-google-vertexai>=3.2.3",
+    "langgraph>=1.1.10",
     "python-dotenv>=1.2.2",
 ]

@@ -18,7 +18,9 @@ print(f"Vocabulary size  : {tokenizer.vocab_size}")
 
 # Encode both splits
 train_tokens = tokenizer.encode(train_text)
+
 val_tokens   = tokenizer.encode(val_text)
+print(f"Val text        : {len(val_text):,} characters")
 
 print(f"Train tokens     : {len(train_tokens):,}")
 print(f"Val tokens       : {len(val_tokens):,}")
