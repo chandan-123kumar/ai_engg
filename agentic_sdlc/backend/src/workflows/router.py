@@ -6,8 +6,8 @@ from src.models.user import User
 from src.workflows import service
 from src.workflows.schemas import (
     WorkflowCreate, WorkflowResponse,
-    StageCreate, StageResponse,
-    SubStepCreate, SubStepResponse,
+    StageCreate, StageUpdate, StageResponse,
+    SubStepCreate, SubStepUpdate, SubStepResponse,
 )
 
 router = APIRouter()
@@ -55,6 +55,22 @@ def add_sub_step(stage_id: str, body: SubStepCreate, db: Session = Depends(get_d
         db, stage_id, body.name, body.order, body.executor_type,
         body.agent_conversation_config, body.on_complete, body.on_reject,
     )
+
+@router.patch("/stages/{stage_id}", response_model=StageResponse)
+def update_stage(stage_id: str, body: StageUpdate, db: Session = Depends(get_db),
+                 user: User = Depends(get_current_user)):
+    stage = service.update_stage(db, stage_id, **body.model_dump(exclude_none=True))
+    if not stage:
+        raise HTTPException(status_code=404, detail="Stage not found")
+    return stage
+
+@router.patch("/substeps/{substep_id}", response_model=SubStepResponse)
+def update_sub_step(substep_id: str, body: SubStepUpdate, db: Session = Depends(get_db),
+                    user: User = Depends(get_current_user)):
+    ss = service.update_sub_step(db, substep_id, **body.model_dump(exclude_none=True))
+    if not ss:
+        raise HTTPException(status_code=404, detail="Sub-step not found")
+    return ss
 
 @router.get("/stages/{stage_id}/substeps", response_model=list[SubStepResponse])
 def list_sub_steps(stage_id: str, db: Session = Depends(get_db),

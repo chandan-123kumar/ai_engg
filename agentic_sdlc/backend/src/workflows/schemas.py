@@ -22,6 +22,13 @@ class StageCreate(BaseModel):
     gate_type: Optional[str] = None
     config: dict = {}
 
+class StageUpdate(BaseModel):
+    name: Optional[str] = None
+    order: Optional[int] = None
+    executor_type: Optional[str] = None
+    gate_type: Optional[str] = None
+    config: Optional[dict] = None
+
 class StageResponse(BaseModel):
     id: UUID
     workflow_id: UUID
@@ -29,8 +36,17 @@ class StageResponse(BaseModel):
     order: int
     executor_type: str
     gate_type: Optional[str] = None
+    config: dict = {}
 
     model_config = {"from_attributes": True}
+
+class SubStepUpdate(BaseModel):
+    name: Optional[str] = None
+    order: Optional[int] = None
+    executor_type: Optional[str] = None
+    agent_conversation_config: Optional[dict] = None
+    on_complete: Optional[str] = None
+    on_reject: Optional[str] = None
 
 class SubStepCreate(BaseModel):
     name: str

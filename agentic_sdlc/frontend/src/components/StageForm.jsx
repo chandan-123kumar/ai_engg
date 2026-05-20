@@ -1,8 +1,13 @@
 import { useState } from 'react'
 
-export default function StageForm({ onSubmit, onCancel }) {
-  const [form, setForm] = useState({ name: '', order: 1, executor_type: 'agent', gate_type: 'none', config: {} })
+export default function StageForm({ onSubmit, onCancel, agents = [] }) {
+  const [form, setForm] = useState({
+    name: '', order: 1, executor_type: 'agent', gate_type: 'none', config: {},
+  })
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
+
+  const agentType = form.config.agent_type || ''
+  const setAgent = (v) => set('config', v ? { agent_type: v } : {})
 
   return (
     <div className="bg-gray-50 border rounded p-3 space-y-2">
@@ -26,6 +31,15 @@ export default function StageForm({ onSubmit, onCancel }) {
           <option value="email">Email</option>
         </select>
       </div>
+      {form.executor_type === 'agent' && (
+        <select value={agentType} onChange={(e) => setAgent(e.target.value)}
+          className="w-full border rounded px-2 py-1.5 text-sm">
+          <option value="">— Assign agent (optional) —</option>
+          {agents.map((a) => (
+            <option key={a.agent_type} value={a.agent_type}>{a.name} ({a.agent_type})</option>
+          ))}
+        </select>
+      )}
       <div className="flex gap-2">
         <button onClick={() => onSubmit(form)}
           className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">Add</button>

@@ -1,5 +1,6 @@
 import uuid
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 from src.models.workflow import Workflow, Stage, SubStep, WorkflowStatus
 
 def create_workflow(db: Session, user_id: str, name: str, trigger: dict) -> Workflow:
@@ -57,3 +58,29 @@ def add_sub_step(db: Session, stage_id: str, name: str, order: int, executor_typ
 
 def get_sub_steps(db: Session, stage_id: str) -> list[SubStep]:
     return db.query(SubStep).filter(SubStep.stage_id == stage_id).order_by(SubStep.order).all()
+
+def update_sub_step(db: Session, substep_id: str, **kwargs) -> SubStep | None:
+    ss = db.query(SubStep).filter(SubStep.id == substep_id).first()
+    if not ss:
+        return None
+    for k, v in kwargs.items():
+        if v is not None:
+            setattr(ss, k, v)
+            if k == 'agent_conversation_config':
+                flag_modified(ss, 'agent_conversation_config')
+    db.commit()
+    db.refresh(ss)
+    return ss
+
+def update_stage(db: Session, stage_id: str, **kwargs) -> Stage | None:
+    stage = db.query(Stage).filter(Stage.id == stage_id).first()
+    if not stage:
+        return None
+    for k, v in kwargs.items():
+        if v is not None:
+            setattr(stage, k, v)
+            if k == 'config':
+                flag_modified(stage, 'config')
+    db.commit()
+    db.refresh(stage)
+    return stage

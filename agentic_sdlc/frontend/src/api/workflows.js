@@ -13,3 +13,7 @@ export const addSubStep = (stageId, substep) =>
   client.post(`/stages/${stageId}/substeps`, substep).then((r) => r.data)
 export const listSubSteps = (stageId) =>
   client.get(`/stages/${stageId}/substeps`).then((r) => r.data)
+export const updateStage = (stageId, data) =>
+  client.patch(`/stages/${stageId}`, data).then((r) => r.data)
+export const updateSubStep = (substepId, data) =>
+  client.patch(`/substeps/${substepId}`, data).then((r) => r.data)
