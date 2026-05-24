@@ -9,8 +9,8 @@ import gradio as gr
 
 
 
-text_file = "/Users/chandankumar/Desktop/AIEngg/ai_learning/src/doc/me.txt"
-reader = PdfReader("/Users/chandankumar/Desktop/AIEngg/ai_learning/src/doc/linkedin.pdf")
+text_file = "src/doc/me.txt"
+reader = PdfReader("src/doc/linkedin.pdf")
 text = ""
 
 class ProfileAnswer(BaseModel):

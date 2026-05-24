@@ -1,3 +1,9 @@
+---
+title: ai_agent
+app_file: src/main.py
+sdk: gradio
+sdk_version: 6.14.0
+---
 # AI Learning — LinkedIn Profile Chatbot
 
 A personal AI assistant that answers questions about Chandan Kumar by reading his LinkedIn profile PDF and using OpenAI's GPT-4o-mini with structured output.
