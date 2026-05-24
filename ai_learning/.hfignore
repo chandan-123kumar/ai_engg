@@ -1,6 +1,6 @@
-.env
 .venv/
 __pycache__/
 *.pyc
+.env
+.claude/
 uv.lock
-.claude
