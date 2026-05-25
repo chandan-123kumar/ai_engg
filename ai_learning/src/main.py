@@ -9,20 +9,24 @@ import gradio as gr
 
 
 
-text_file = "src/doc/me.txt"
-reader = PdfReader("src/doc/linkedin.pdf")
-text = ""
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+text_file = os.path.join(BASE_DIR, "doc", "me.txt")
+print(text_file)
+pdf_file = os.path.join(BASE_DIR, "doc", "linkedin.pdf")
 
 class ProfileAnswer(BaseModel):
     know: bool
     answer: str
 
 def dump_to_text():
+    if not os.path.exists(pdf_file):
+        return
+    reader = PdfReader(pdf_file)
     text = ""
     for page in reader.pages:
         text += page.extract_text()
     with open(text_file, "w", encoding="utf-8") as f:
-        f.write(text)    
+        f.write(text)
 
 
 def get_context():
@@ -49,7 +53,7 @@ def record_question(message):
 def get_structured_prompt(user_message: str) -> list[dict]:
     context = get_context()
     return [
-        {"role": "system", "content": f"You are an assistant helping with questions about the chandan kumar with details here:\n\n{context}"},
+        {"role": "system", "content": f"You are an assistant helping with questions about Chandan Kumar. Use the profile details below to answer questions always reply in Hindi language.\n\nRules:\n- For greetings (Hi, Hello), respond warmly and set know=True.\n- Set know=True if you can answer from the profile details.\n- Set know=False ONLY if the question cannot be answered from the profile details.\n\nProfile:\n{context}"},
         {"role": "user", "content": user_message}
         
     ]
@@ -58,7 +62,7 @@ def get_structured_prompt(user_message: str) -> list[dict]:
 def call_open_ai(message):
     client = OpenAI()
     response = client.chat.completions.parse(
-        model="gpt-4o-mini",
+        model="gpt-4.1-mini",
         messages=get_structured_prompt(message),
         response_format=ProfileAnswer
     )
@@ -68,6 +72,7 @@ def call_open_ai(message):
 
 def chat_with_ai(message, history):
     response = call_open_ai(message)
+    print(response)
     if not response.know:
         send_to_pushOver("I don't know the answer to your question: " + message)
         return "request real chandan kumar to answer this question: " + message
