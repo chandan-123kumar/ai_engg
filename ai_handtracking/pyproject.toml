@@ -1,7 +1,7 @@
 [project]
 name = "hand-tracking"
 version = "0.1.0"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.12"
 dependencies = [
     "opencv-python>=4.9",
     "mediapipe==0.10.14",
