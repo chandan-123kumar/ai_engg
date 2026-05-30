@@ -1,9 +1,6 @@
-// system_grinding/semaphore/MySemaphore.java
-import java.util.LinkedList;
 
 public class MySemaphore {
     private int permits;
-    private final LinkedList<Thread> waitQueue = new LinkedList<>();
 
     public MySemaphore(int permits) {
         if (permits < 0) throw new IllegalArgumentException("permits must be >= 0");
@@ -11,23 +8,15 @@ public class MySemaphore {
     }
 
     public synchronized void acquire() throws InterruptedException {
-        Thread current = Thread.currentThread();
-        waitQueue.addLast(current);
-        try {
-            while (permits == 0 || waitQueue.peek() != current) {
-                wait();
-            }
-            waitQueue.poll();
-            permits--;
-        } catch (InterruptedException e) {
-            waitQueue.remove(current);
-            notifyAll(); // wake next waiter in case permits > 0
-            throw e;
+        while (permits == 0) {
+            wait();
         }
+        permits--;
     }
 
     public synchronized void release() {
         permits++;
         notifyAll();
     }
+
 }
