@@ -13,13 +13,17 @@ public class MySemaphore {
     public synchronized void acquire() throws InterruptedException {
         Thread current = Thread.currentThread();
         waitQueue.addLast(current);
-
-        while (permits == 0 || waitQueue.peek() != current) {
-            wait();
+        try {
+            while (permits == 0 || waitQueue.peek() != current) {
+                wait();
+            }
+            waitQueue.poll();
+            permits--;
+        } catch (InterruptedException e) {
+            waitQueue.remove(current);
+            notifyAll(); // wake next waiter in case permits > 0
+            throw e;
         }
-
-        waitQueue.poll();
-        permits--;
     }
 
     public synchronized void release() {
