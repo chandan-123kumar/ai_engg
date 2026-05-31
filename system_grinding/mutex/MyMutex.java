@@ -12,4 +12,8 @@ public class MyMutex {
         locked = false;
         notifyAll();
     }
+
+    public void printer() {
+        System.out.println("I am a non restricted method");
+    }   
 }

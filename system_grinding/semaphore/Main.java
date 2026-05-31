@@ -18,9 +18,9 @@ public class Main {
         try {
             semaphore.acquire();
             System.out.println(Thread.currentThread().getName() + " working");
-            Thread.sleep(500);
+            Thread.sleep(10100);
             semaphore.release();
-            System.out.println(Thread.currentThread().getName() + " done");
+            System.out.println(Thread.currentThread().getName() + " lock releassed");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
