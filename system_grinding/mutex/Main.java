@@ -28,7 +28,7 @@ public class Main {
         try {
             mutex.lock();
             System.out.println(Thread.currentThread().getName() + " acquired lock");
-            Thread.sleep(5000);
+            Thread.sleep(500);
             mutex.unlock();
             System.out.println(Thread.currentThread().getName() + " released lock");
         } catch (InterruptedException e) {
