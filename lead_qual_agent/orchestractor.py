@@ -20,20 +20,9 @@ def run(lead: LeadState) -> LeadState:
     """
     t0 = time.time()
     print(f"\n[Orchestrator] Starting processing for lead '{lead.name}' from {lead.company}...")
-    
-    # TODO: Add pre-flight validation (check required fields, data quality)
-    # TODO: Implement caching to skip already-processed leads
-    
     lead = enrichment_run(lead)
-    # TODO: Add fallback enrichment from external data sources (LinkedIn, Crunchbase) if LLM fails
-    
     lead = scoring_run(lead)
-    # TODO: Add conditional logic: if COLD lead, decide whether to skip outreach
-    # TODO: Implement A/B testing different scoring models
-    
     lead = outreach_run(lead)
-    # TODO: Store email drafts for human review before sending (compliance check)
-    # TODO: Add A/B testing for email templates and CTAs  
 
     print(f"\n[Orchestrator] Deciding next action via tool call...")
     messages = [
@@ -69,7 +58,10 @@ def run(lead: LeadState) -> LeadState:
     )
 
     # ── Step 3: Execute tool call ────────────────────────────────────────────
-    tool_call = response.choices[0].message.tool_calls[0]
+    response_msg  = response.choices[0]
+    print(f"[Orchestrator] Model response received. Executing tool call... #{response_msg}")
+    tool_call = response_msg.message.tool_calls[0]
+
     result = dispatch_tool_call(tool_call.function.name, tool_call.function.arguments)
     print(f"[Orchestrator] Tool result: {result[:120]}...")
 
