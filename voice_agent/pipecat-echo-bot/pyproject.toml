@@ -1,0 +1,17 @@
+[project]
+name = "pipecat-echo-bot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "openai>=2.40.0",
+    "pipecat-ai[cartesia]",
+    "pyaudio>=0.2.14",
+    "python-dotenv",
+]
+
+[tool.uv]
+override-dependencies = [
+    "onnxruntime==1.20.1",
+]
