@@ -1,0 +1,15 @@
+[project]
+name = "qwen3-chat-server"
+version = "0.1.0"
+description = "Streaming chat server backed by Qwen3-0.6B megakernel"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "transformers>=4.51.0",
+    "torch>=2.6.0",
+    "ninja",
+]
+
+[tool.uv]
+dev-dependencies = []
