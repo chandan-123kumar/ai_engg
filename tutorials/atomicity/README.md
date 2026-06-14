@@ -18,10 +18,11 @@ A walk through what "atomic" actually means, why `x += 1` looks like one stateme
 7. [Memory models and reordering](#7-memory-models-and-reordering)
 8. [The fix menu: locks, CAS, partitioning, immutability](#8-the-fix-menu)
 9. [Practical use cases: where this bug actually bites](#9-practical-use-cases)
-10. [Live lab walkthrough](#10-live-lab-walkthrough)
-11. [Other languages: Java, C++, Go](#11-other-languages)
-12. [Troubleshooting cheatsheet](#12-troubleshooting-cheatsheet)
-13. [Further reading](#13-further-reading)
+10. [Pushing the lock to the database](#10-pushing-the-lock-to-the-database)
+11. [Live lab walkthrough](#11-live-lab-walkthrough)
+12. [Other languages: Java, C++, Go](#12-other-languages)
+13. [Troubleshooting cheatsheet](#13-troubleshooting-cheatsheet)
+14. [Further reading](#14-further-reading)
 
 See also the [theory Q&A companion](THEORY_QA.md) — same material as collapsible self-quiz questions.
 
@@ -401,7 +402,191 @@ Each line is the same `check → modify → write` shape with no lock around it.
 
 ---
 
-## 10. Live lab walkthrough
+## 10. Pushing the lock to the database
+
+In-process `threading.Lock` works for one Python process. Real services have many app servers behind a load balancer, all hitting one shared database. A Python lock in server A means nothing to server B. The fix is to move the synchronization down to the layer that *is* shared — the database — and use its primitives.
+
+Five canonical patterns, in roughly the order I'd reach for them.
+
+### 10.1 Atomic conditional `UPDATE` — the default
+
+Let the database do the check-and-decrement in one row-level atomic statement. No transactions, no locks held across application code.
+
+```python
+def buy(self, item_id: int, qty: int) -> bool:
+    cur = self.conn.execute(
+        "UPDATE inventory SET stock = stock - ? "
+        "WHERE id = ? AND stock >= ?",
+        (qty, item_id, qty),
+    )
+    self.conn.commit()
+    return cur.rowcount == 1      # 1 = sold, 0 = not enough stock
+```
+
+**Why it works:** the `WHERE stock >= ?` predicate and the `SET stock = stock - ?` happen under a row lock the database holds for the duration of the statement. No interleaving possible. `rowcount` tells you whether the row matched.
+
+This is the **DB-level equivalent of `lock cmpxchg`** — atomic check-and-modify on one row. Scales to millions of ops/sec, no application-level coordination.
+
+**Limitation:** only works when your check is expressible as a SQL predicate. Multi-row invariants need one of the patterns below.
+
+### 10.2 `SELECT ... FOR UPDATE` — explicit row lock
+
+Use when you need to read more data, run application logic, then update.
+
+```python
+def buy(self, item_id: int, qty: int) -> bool:
+    with self.conn:                                    # transaction
+        row = self.conn.execute(
+            "SELECT stock, price FROM inventory WHERE id = ? FOR UPDATE",
+            (item_id,),
+        ).fetchone()
+        if row["stock"] < qty:
+            return False                               # ROLLBACK, no write
+        # arbitrary Python logic here — discount calc, fraud check, etc.
+        self.conn.execute(
+            "UPDATE inventory SET stock = stock - ? WHERE id = ?",
+            (qty, item_id),
+        )
+    return True
+```
+
+#### Important: `FOR UPDATE` does not update anything
+
+Despite the name, `SELECT ... FOR UPDATE` **does not write to the database**. It only acquires an exclusive row lock and returns the data. Whether you actually run an `UPDATE` afterwards is up to you — you can read the row, check a condition, and `ROLLBACK` without writing a single byte. The lock is released; no state changed.
+
+Read it as *"I **intend** to update this row, so please reserve it for me."* The lock declares intent so other transactions can't sneak in between your read and your decision.
+
+| Action | Happens? |
+|---|---|
+| Reads the row | ✅ yes |
+| Acquires exclusive row lock until COMMIT/ROLLBACK | ✅ yes |
+| Modifies the row on disk | ❌ no |
+| Writes to WAL / redo log | ❌ no |
+| Increments row version / `xmin` | ❌ no |
+
+**What it blocks** (other transactions trying to):
+- `SELECT ... FOR UPDATE` the same row → wait
+- `SELECT ... FOR SHARE` the same row → wait
+- `UPDATE` / `DELETE` the same row → wait
+- Plain `SELECT` (no `FOR UPDATE`) → not blocked; reads the pre-lock MVCC snapshot
+
+**Variants worth knowing:**
+
+| Clause | What it does |
+|---|---|
+| `FOR UPDATE` | Exclusive lock, blocks other lockers and writers |
+| `FOR NO KEY UPDATE` (Postgres) | Like FOR UPDATE but allows concurrent FK lookups |
+| `FOR SHARE` | Shared lock — many readers OK, blocks writers |
+| `FOR UPDATE SKIP LOCKED` | Skip rows already locked by others — perfect for job queues |
+| `FOR UPDATE NOWAIT` | Error immediately instead of waiting |
+
+**Mental model:** `FOR UPDATE` is to a DB row what `lock.acquire()` is to a Python object — it reserves access, it doesn't change the data.
+
+```
+SELECT ... FOR UPDATE   ≈   lock.acquire() + read shared state
+... your logic ...      ≈   (do whatever)
+UPDATE ...              ≈   write shared state
+COMMIT                  ≈   lock.release()
+```
+
+**Cost:** blocking. Holding the lock during slow Python logic stalls every other transaction on that row. Keep the critical section short.
+
+### 10.3 Optimistic concurrency (version column)
+
+No locks. Read, compute, write — but the write fails if anyone else wrote first. Retry.
+
+```sql
+ALTER TABLE inventory ADD COLUMN version INT NOT NULL DEFAULT 0;
+```
+
+```python
+def buy(self, item_id: int, qty: int) -> bool:
+    for _ in range(MAX_RETRIES):
+        row = self.conn.execute(
+            "SELECT stock, version FROM inventory WHERE id = ?",
+            (item_id,),
+        ).fetchone()
+        if row["stock"] < qty:
+            return False
+        cur = self.conn.execute(
+            "UPDATE inventory SET stock = ?, version = version + 1 "
+            "WHERE id = ? AND version = ?",
+            (row["stock"] - qty, item_id, row["version"]),
+        )
+        self.conn.commit()
+        if cur.rowcount == 1:
+            return True
+        # someone else wrote first; loop and retry
+    raise RuntimeError("too much contention")
+```
+
+`WHERE version = ?` is the optimistic check. If anyone updated in between, the version moved, rowcount is 0, you retry. This is **DB-level CAS**.
+
+**Best fit:** read-heavy, write-rare; long-lived edit sessions ("user opened the form 5 minutes ago, now saving"). **Bad fit:** flash sales — under high contention, every transaction loses the race and retries, livelock territory.
+
+### 10.4 `SERIALIZABLE` isolation
+
+Let the database guarantee transactions behave as if they ran in some serial order. Write naïve code; the DB rejects anything non-serializable with SQLSTATE 40001 and you retry.
+
+```python
+self.conn.execute("BEGIN ISOLATION LEVEL SERIALIZABLE")   # Postgres
+try:
+    row = self.conn.execute("SELECT stock FROM inventory WHERE id = ?", (id,)).fetchone()
+    if row["stock"] < qty:
+        self.conn.rollback(); return False
+    self.conn.execute("UPDATE inventory SET stock = stock - ? WHERE id = ?", (qty, id))
+    self.conn.commit()
+    return True
+except SerializationFailure:
+    self.conn.rollback()
+    raise                                                  # caller retries
+```
+
+**Use when:** multi-row invariants where reasoning about lock order is harder than handling retries (banking, scheduling, global constraints).
+**Cost:** retries hurt throughput; abort logic must live in every caller; SSI overhead is real on Postgres.
+
+### 10.5 Event-sourced ledger
+
+Don't store "current stock." Append every reservation/return as a row. Current stock is a derived `SUM(delta)`.
+
+```sql
+CREATE TABLE inventory_events (
+  id         BIGSERIAL PRIMARY KEY,
+  item_id    INT NOT NULL,
+  delta      INT NOT NULL,            -- -1 reservation, +1 return
+  order_id   UUID NOT NULL UNIQUE,    -- idempotency key
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+INSERT INTO inventory_events (item_id, delta, order_id)
+SELECT 42, -1, 'order-xyz'
+WHERE (SELECT COALESCE(SUM(delta), 0) + initial_stock(42)
+       FROM inventory_events WHERE item_id = 42) >= 1;
+```
+
+No field to race on. The `WHERE` predicate against the running sum is evaluated atomically inside the statement; `UNIQUE(order_id)` makes retries idempotent for free.
+
+**Bonus:** audit log, time-travel queries, replayable history. **Cost:** reads are aggregations (cache them); table grows unbounded (partition + archive).
+
+### Decision shortcut
+
+| Situation | Pick |
+|---|---|
+| Single-row counter / inventory / balance | **10.1 — Atomic conditional UPDATE** |
+| Multi-step business logic on one row | **10.2 — SELECT FOR UPDATE** |
+| Long-lived edits, low contention | **10.3 — Optimistic / version column** |
+| Multi-row invariants, complex rules | **10.4 — SERIALIZABLE** |
+| Need audit trail / event sourcing | **10.5 — Append-only ledger** |
+| Hot global counter / flash sale | Redis `DECR` (atomic) + write-behind to DB |
+| Across services without shared DB | Saga pattern with compensating transactions |
+
+For the `Inventory` class earlier in the tutorial, the right answer 90% of the time is **10.1**: three lines of code, scales to massive concurrency, and the database does all the work.
+
+See [`src/db_demo.py`](src/db_demo.py) for a runnable SQLite demo comparing the broken naïve check-then-update against the atomic conditional UPDATE pattern.
+
+---
+
+## 11. Live lab walkthrough
 
 ### Prereqs
 
@@ -465,7 +650,21 @@ python use_cases.py
 
 Three scenarios — rate limiter, inventory, bank transfers — each running broken then fixed. You'll see a rate limiter let through extra requests, an inventory go negative, and a bank ledger create or destroy money. Then the locked version of each is correct.
 
-### Step 7 — explore: change the switch interval
+### Step 7 — push the lock to the database
+
+```bash
+python db_demo.py
+```
+
+Same inventory race, but stored in SQLite. Three implementations:
+
+- **naive** — Python checks `stock >= 1`, then issues `UPDATE`. Two round-trips. The race lives in the gap. Reliably oversells by 10+ units.
+- **atomic UPDATE** — single statement `UPDATE ... SET stock = stock - 1 WHERE id = ? AND stock >= 1`. Predicate and write are evaluated under one row lock. Always correct.
+- **BEGIN IMMEDIATE** — SQLite's equivalent of `SELECT ... FOR UPDATE`. Locks the database before the check; commits or rolls back at the end. Always correct.
+
+The lesson: storing the data in a database doesn't make your code thread-safe. The race lives in the *gap between statements*, not in the database itself. Fix it by either collapsing the check into the UPDATE, or holding an explicit DB lock across the critical section.
+
+### Step 8 — explore: change the switch interval
 
 ```python
 import sys
@@ -476,7 +675,7 @@ Run `race_demo.py` narrow version repeatedly with various intervals. Note that *
 
 ---
 
-## 11. Other languages
+## 12. Other languages
 
 The same race shows up everywhere multiple threads touch a shared variable. The fix vocabularies differ:
 
@@ -494,7 +693,7 @@ Rust's borrow checker is the only one of these that *refuses to compile* the uns
 
 ---
 
-## 12. Troubleshooting cheatsheet
+## 13. Troubleshooting cheatsheet
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
@@ -509,7 +708,7 @@ Rust's borrow checker is the only one of these that *refuses to compile* the uns
 
 ---
 
-## 13. Further reading
+## 14. Further reading
 
 - *Java Concurrency in Practice*, Goetz et al. — still the clearest treatment of the underlying model.
 - *The Art of Multiprocessor Programming*, Herlihy & Shavit — hardware to lock-free.
@@ -532,5 +731,6 @@ tutorials/atomicity/
     ├── race_demo.py      # narrow vs. stretched RMW window
     ├── process_demo.py   # multiprocessing race + fix
     ├── fixes.py          # five correct counters with timing
-    └── use_cases.py      # rate limiter, inventory, bank — real-world shapes
+    ├── use_cases.py      # rate limiter, inventory, bank — real-world shapes
+    └── db_demo.py        # SQLite: naive check-then-update vs. atomic UPDATE
 ```

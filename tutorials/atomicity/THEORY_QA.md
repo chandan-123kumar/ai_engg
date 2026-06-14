@@ -371,6 +371,97 @@ So JS doesn't get a free pass — it just defaults to a concurrency model (singl
 
 ---
 
+## Section 7.5 — Database-level concurrency
+
+### Q7.5.1 — A `threading.Lock` works in one Python process. How do you get the same guarantee across many app servers all hitting one database?
+
+<details>
+<summary>▶ Show answer</summary>
+
+Push the lock to the layer that's actually shared — the database. Five canonical patterns, in roughly the order you'd reach for them:
+
+1. **Atomic conditional UPDATE** — `UPDATE inventory SET stock = stock - 1 WHERE id = ? AND stock >= 1`. The predicate and the write happen under a row lock the database holds for the duration of the statement. Inspect `rowcount` to know whether it succeeded. This is the DB-level equivalent of `lock cmpxchg` — and is the right answer 90% of the time.
+
+2. **`SELECT ... FOR UPDATE`** — acquires an exclusive row lock that you hold until commit. Use when you need to read more data and run application logic before deciding to write.
+
+3. **Optimistic concurrency** — add a `version` column, `UPDATE ... WHERE version = ?`. If rowcount is 0, somebody else wrote first; retry. Best for low-contention edits.
+
+4. **`SERIALIZABLE` isolation** — DB rejects transactions that can't be serialized; you retry on SQLSTATE 40001. Best for complex multi-row invariants.
+
+5. **Event-sourced ledger** — append every change as a row; current value is `SUM(delta)`. No mutable cell to race on. Bonus: audit trail.
+
+The Python lock doesn't help here because each process has its own lock object. The DB is the only shared point of synchronization that all app servers see.
+
+</details>
+
+### Q7.5.2 — Does `SELECT ... FOR UPDATE` actually update the row?
+
+<details>
+<summary>▶ Show answer</summary>
+
+**No.** Despite the name, `SELECT ... FOR UPDATE` does not modify the database. It only:
+
+- Reads the row (returns the data).
+- Acquires an **exclusive row lock** held until COMMIT or ROLLBACK.
+
+It does *not* write to the row, the WAL/redo log, or any version column. Read it as *"I **intend** to update this row — reserve it for me."* You're declaring intent so other transactions can't sneak in. Whether you actually run an `UPDATE` afterwards is your choice — you can `ROLLBACK` and no state changes at all; only the lock is released.
+
+Mental model:
+
+```
+SELECT ... FOR UPDATE   ≈   lock.acquire() + read shared state
+... your logic ...      ≈   (do whatever)
+UPDATE ...              ≈   write shared state
+COMMIT                  ≈   lock.release()
+```
+
+What it blocks: other `SELECT FOR UPDATE`, `FOR SHARE`, `UPDATE`, `DELETE` on the same row. Plain `SELECT` (without `FOR UPDATE`) is not blocked — it sees the pre-lock MVCC snapshot.
+
+</details>
+
+### Q7.5.3 — When would you choose `SELECT FOR UPDATE` over a single atomic `UPDATE ... WHERE`?
+
+<details>
+<summary>▶ Show answer</summary>
+
+Use `SELECT FOR UPDATE` when the **decision** depends on more than a SQL predicate can express:
+
+- The check involves multiple tables, joins, or aggregates.
+- The decision involves Python logic — fraud scoring, discount calculation, calling another service.
+- You want to read several fields, compute a new state in code, and write back.
+
+For "decrement stock if available," `UPDATE inventory SET stock = stock - 1 WHERE id = ? AND stock >= 1` does it in one statement — no need for `FOR UPDATE`. For "given the user's tier, current discount eligibility, and inventory at three warehouses, decide and write the order," you need to read several rows under a lock before you can build the UPDATE.
+
+Cost reminder: `FOR UPDATE` blocks other writers and lockers for the duration of your transaction. Keep the locked section short — never call external APIs while holding a row lock.
+
+</details>
+
+### Q7.5.4 — Why does the naive "check stock in Python, then UPDATE" race even when both queries hit the same database?
+
+<details>
+<summary>▶ Show answer</summary>
+
+Because the race lives in the **gap between the two round-trips**, not in the database.
+
+Two app threads (or two app servers) each:
+
+1. `SELECT stock FROM inventory WHERE id = 1` → both see `stock = 1`.
+2. Each evaluates `1 >= 1 → ok` in Python.
+3. `UPDATE inventory SET stock = stock - 1 WHERE id = 1` → both succeed.
+
+Final stock: −1. Both customers got confirmation emails. The database executed every individual statement atomically — it's the application that strung two atomic statements together with a non-atomic decision in the middle.
+
+Fix by either:
+
+- Collapsing the check into the UPDATE: `UPDATE ... WHERE stock >= ?`. Now there is no Python gap; the predicate is part of the single atomic statement.
+- Holding a real DB lock across the whole transaction: `BEGIN`; `SELECT ... FOR UPDATE`; check in Python; `UPDATE`; `COMMIT`.
+
+The general lesson: atomicity at the storage layer doesn't compose. Two atomic statements with application logic between them is not an atomic operation.
+
+</details>
+
+---
+
 ## Section 8 — Self-test scenarios
 
 ### Q8.1 — A web service has a per-user request counter `counters[user_id] += 1` under heavy load. Reports say counts are 10–15% low. What's happening and how do you fix it?
