@@ -314,3 +314,60 @@ section {
   font-weight: 500;
 }
 .project-link--muted { color: var(--text-dim); }
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: relative;
+  padding-left: 24px;
+  border-left: 2px solid var(--border);
+}
+.role {
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  position: relative;
+}
+.role::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 28px;
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.15);
+}
+.role-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+@media (min-width: 640px) {
+  .role-head { flex-direction: row; justify-content: space-between; align-items: baseline; gap: 16px; }
+}
+.role-date { color: var(--text-dim); font-size: 0.85rem; font-weight: 500; white-space: nowrap; }
+.role-bullets { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.role-bullets li {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+  padding-left: 18px;
+  position: relative;
+}
+.role-bullets li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  opacity: 0.6;
+}
