@@ -150,3 +150,95 @@ section {
   .nav-toggle { display: none; }
   .nav-menu { display: flex; }
 }
+
+.hero {
+  padding-top: 96px;
+  padding-bottom: 64px;
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+}
+.hero-eyebrow {
+  color: var(--accent);
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 16px;
+}
+.hero-name {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  background: linear-gradient(135deg, var(--text) 0%, var(--accent) 60%, var(--accent-2) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 20px;
+}
+.hero-pitch {
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  max-width: 640px;
+  margin-bottom: 48px;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+@media (min-width: 640px) {
+  .metrics { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+}
+.metric {
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+.metric-value {
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.metric-unit { font-size: 0.6em; color: var(--accent-2); }
+.metric-label {
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+.metric-label span {
+  display: block;
+  color: var(--text-dim);
+  font-weight: 400;
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+.hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
+}
+.btn:hover { transform: translateY(-1px); opacity: 1; }
+.btn-primary {
+  background: var(--accent);
+  color: #062028;
+  font-weight: 600;
+}
+.btn-primary:hover { background: #67e8f9; }
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
