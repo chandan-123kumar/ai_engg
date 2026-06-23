@@ -410,3 +410,13 @@ section {
   border-top: 1px solid var(--border);
 }
 .site-footer p { color: var(--text-dim); font-size: 0.85rem; text-align: center; }
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 600ms ease, transform 600ms ease;
+}
+.fade-in.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
