@@ -74,6 +74,59 @@
         <span class="badge">BrowserStack AI Champion 2025</span>
       </div>
     </section>
+    <section id="projects" class="projects">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Featured Projects</p>
+          <h2>What I'm shipping</h2>
+        </div>
+        <div class="project-grid">
+          <article class="project-card">
+            <h3>Qwen3-TTS Megakernel</h3>
+            <p>Persistent-kernel CUDA megakernel repurposed as the talker decoder for Qwen3-TTS (0.6B). 47&nbsp;ms median TTFB and 0.145 RTF on RTX 5090 — 5&times; faster than the stock pipeline. Diagnosed and fixed a grid-barrier race deadlock; verified numerical parity against HF reference.</p>
+            <div class="chips">
+              <span class="chip">CUDA</span>
+              <span class="chip">Qwen3-TTS</span>
+              <span class="chip">bf16</span>
+            </div>
+            <a class="project-link" href="https://github.com/chandan-123kumar/voice_stream" target="_blank" rel="noopener">View on GitHub &rarr;</a>
+          </article>
+
+          <article class="project-card">
+            <h3>Real-Time Voice Agent</h3>
+            <p>Full WebSocket voice agent (mic &rarr; faster-whisper STT &rarr; gpt-4o-mini &rarr; megakernel TTS &rarr; speaker) on Pipecat with Silero VAD endpointing, barge-in, and 9 switchable voices. Cut speech-end-to-first-reply latency 2–3.7&times; to 0.7–1.1&nbsp;s by colocating STT on the GPU.</p>
+            <div class="chips">
+              <span class="chip">Pipecat</span>
+              <span class="chip">Whisper</span>
+              <span class="chip">Silero VAD</span>
+            </div>
+            <a class="project-link" href="https://github.com/chandan-123kumar/voice_stream" target="_blank" rel="noopener">View on GitHub &rarr;</a>
+          </article>
+
+          <article class="project-card">
+            <h3>SDD Context Engine</h3>
+            <p>Python FastMCP server exposing custom tools (feature-knowledge queries, dev-phase activation, mocking helpers) that injects codebase-grounded context into Claude Code / Copilot. Drives the org-wide 6-phase agentic Spec-Driven Development pipeline at BrowserStack.</p>
+            <div class="chips">
+              <span class="chip">FastMCP</span>
+              <span class="chip">Python</span>
+              <span class="chip">Claude Code</span>
+            </div>
+            <span class="project-link project-link--muted">BrowserStack — internal</span>
+          </article>
+
+          <article class="project-card">
+            <h3>Indic LLM Fine-Tuning</h3>
+            <p>Fine-tuned open-source LLMs (Qwen) for Indic languages using QLoRA. Evaluated tokenizers and compared SFT vs. continued pretraining on Indic corpora.</p>
+            <div class="chips">
+              <span class="chip">QLoRA</span>
+              <span class="chip">Qwen</span>
+              <span class="chip">SFT</span>
+            </div>
+            <a class="project-link" href="https://github.com/chandan-123kumar" target="_blank" rel="noopener">View on GitHub &rarr;</a>
+          </article>
+        </div>
+      </div>
+    </section>
   </main>
   <script src="script.js" defer></script>
 </body>

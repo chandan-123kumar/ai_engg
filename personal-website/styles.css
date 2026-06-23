@@ -270,3 +270,47 @@ section {
   font-weight: 500;
   letter-spacing: 0.02em;
 }
+
+.project-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+@media (min-width: 768px) {
+  .project-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+}
+.project-card {
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: border-color var(--transition), transform var(--transition);
+}
+.project-card:hover {
+  border-color: rgba(34, 211, 238, 0.4);
+  transform: translateY(-2px);
+}
+.project-card p { color: var(--text-dim); font-size: 0.95rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-block;
+  padding: 4px 12px;
+  background: rgba(34, 211, 238, 0.08);
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  color: var(--accent);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.project-link {
+  margin-top: auto;
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.project-link--muted { color: var(--text-dim); }
