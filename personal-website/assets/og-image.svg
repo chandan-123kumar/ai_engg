@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="g1" cx="20%" cy="20%" r="60%">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g2" cx="80%" cy="80%" r="60%">
+      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#0a0b14"/>
+  <rect width="1200" height="630" fill="url(#g1)"/>
+  <rect width="1200" height="630" fill="url(#g2)"/>
+  <text x="80" y="290" font-family="Inter, sans-serif" font-size="84" font-weight="700" fill="#e6e8ef">Chandan Kumar</text>
+  <text x="80" y="360" font-family="Inter, sans-serif" font-size="34" font-weight="500" fill="#22d3ee">Senior AI Engineer</text>
+  <text x="80" y="410" font-family="Inter, sans-serif" font-size="28" font-weight="400" fill="#9aa3b2">Agentic Systems · Voice AI · GPU</text>
+  <text x="80" y="530" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="#9aa3b2">5× TTS speedup · 47ms TTFB · $100K+ ARR</text>
+</svg>
