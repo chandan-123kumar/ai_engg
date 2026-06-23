@@ -133,7 +133,7 @@ Heading: "Skills". 5 rows, each labeled, with chips:
 ### 8. Footer / Contact
 - Heading: "Let's talk"
 - Email: `chandan.kumar.stack@gmail.com` (mailto link)
-- LinkedIn (URL TBD — use placeholder "https://www.linkedin.com/in/chandan-kumar/" and let user correct)
+- LinkedIn: `https://www.linkedin.com/in/chandan-kumar-100a78111/`
 - GitHub: `https://github.com/chandan-123kumar`
 - Instagram: `https://www.instagram.com/ai_system_design`
 - Resume PDF download link
@@ -179,7 +179,6 @@ No other JS. No event tracking. No external scripts.
 
 ## Open Items For User Confirmation During Implementation
 
-- Exact LinkedIn URL (placeholder used until provided)
 - YouTube channel URL (placeholder used until provided)
 - About-section copy: 2-3 sentences — implementation will draft; user reviews
 - og-image: ship a simple text-based placeholder; user can replace later
