@@ -242,3 +242,31 @@ section {
   border-color: var(--border);
 }
 .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+.section-head { margin-bottom: 40px; }
+.eyebrow {
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 12px;
+}
+.about-body {
+  max-width: 720px;
+  font-size: 1.05rem;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+.about-body strong { color: var(--text); font-weight: 600; }
+.badge {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 8px 16px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
