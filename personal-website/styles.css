@@ -391,3 +391,22 @@ section {
   font-weight: 600;
   font-size: 0.95rem;
 }
+
+.contact-pitch { max-width: 640px; font-size: 1.05rem; margin-bottom: 28px; }
+.contact-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 32px; }
+.contact-links {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.contact-links a { color: var(--text-dim); font-size: 0.95rem; }
+.contact-links a:hover { color: var(--accent); }
+
+.site-footer {
+  padding: 32px 0;
+  border-top: 1px solid var(--border);
+}
+.site-footer p { color: var(--text-dim); font-size: 0.85rem; text-align: center; }
