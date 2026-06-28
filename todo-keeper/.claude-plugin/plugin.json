@@ -1,0 +1,25 @@
+{
+  "name": "todo-keeper",
+  "version": "0.1.0",
+  "description": "Local-first personal TODOs that surface at the right moment during Claude Code sessions",
+  "author": {
+    "name": "Chandan Kumar"
+  },
+  "homepage": "https://github.com/chandan-ku/todo-keeper",
+  "license": "MIT",
+  "commands": "./commands",
+  "skills": "./skills",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/session_start.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "todo-keeper",
+  "owner": {
+    "name": "Chandan Kumar"
+  },
+  "plugins": [
+    {
+      "name": "todo-keeper",
+      "source": "./",
+      "description": "Local-first personal TODOs that surface at the right moment during Claude Code sessions",
+      "version": "0.1.0",
+      "category": "productivity",
+      "keywords": ["todo", "reminders", "productivity", "personal", "local-first"]
+    }
+  ]
+}
